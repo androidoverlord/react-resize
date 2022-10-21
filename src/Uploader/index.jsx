@@ -65,10 +65,10 @@ const Image = () => {
 
     useEffect( () => { 
         const init = () => { 
-            setYpos(reference.top);
-            setXpos(reference.left);
-            setWidth(reference.width);
-            setHeight(reference.height);
+            setYpos(reference.current.offsetTop);
+            setXpos(reference.current.offsetLeft);
+            setWidth(reference.current.offetWidth);
+            setHeight(reference.current.offsetHeight);
         }
 
         reference && init();
@@ -80,6 +80,15 @@ const Image = () => {
 
     const onDrag = (e) => { 
         e.preventDefault();
+
+        console.log( reference );
+
+        console.log(`pageX: ${e.pageX}, pageY: ${e.pageY}`);
+        console.log(`ref left: ${reference.current.offsetLeft}, ref top: ${reference.current.offsetTop} `)
+        // setYpos((currentYpos) => {
+        //     return currentYpos +
+        // });
+        // setXpos(e.pageX - reference.left);
     }
 
     const onDragEnd = (e)=> { 
