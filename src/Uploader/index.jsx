@@ -1,10 +1,10 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 
 //
 
 const ProfileWrapper = styled.div`
-    width: 500px;
+    width: 700px;
     height: 400px;
     background: blue;
     display: flex;
@@ -43,83 +43,158 @@ export default Uploader;
 
 const ImageWrapper = styled.div`
     width: 300px;
-
-    .content {
-        width: 100%;
-        height: 200px;
-        background: gray;
-        top: 0;
-        left: 0;
-        border: 5px solid orange;
-    }
+    height: 200px;
+    right: auto;
+    bottom: auto;
+    background: gray;
+    box-sizing: border-box;
+    border: 5px solid orange;
+    transition: border-radius 400ms ease; 
+    
 `;
 
-const Image = () => {
+const Image = () => { 
     const [dragging, setDragging] = useState(false);
-    const [values, setValues] = useState({});
-    const [container, setContainer] = useState(null);
+    const [ xpos, setXpos] = useState(0);
+    const [ ypos, setYpos] = useState(0);
+    const [ width, setWidth] = useState(0);
+    const [ height, setHeight] = useState(0);
+    const  reference = useRef(null);
 
     //
 
-    function onDragStart(ev) {
-        setDragging(true);
+    useEffect( () => { 
+        const init = () => { 
+            setYpos(reference.top);
+            setXpos(reference.left);
+            setWidth(reference.width);
+            setHeight(reference.height);
+        }
 
-        /**
-         * create clone
-         */
-        const reference = ev.target.getBoundingClientRect();
-        setValues({
-            top: ev.pageY - reference.top,
-            left: ev.pageX - reference.left,
-            width: reference.width,
-            height: reference.height,
-        });
-        setContainer(reference);
+        reference && init();
+    },[reference]);
+    
+    const onDragStart = (e) => { 
+        setDragging( true );
     }
 
-    function onDrag(ev) {
-        ev.preventDefault();
-
-        setValues({
-            top: ev.pageY - container.top,
-            left: ev.pageX - container.left,
-            width: container.width,
-            height: container.height,
-        });
+    const onDrag = (e) => { 
+        e.preventDefault();
     }
 
-    function onDragEnd(ev) {
+    const onDragEnd = (e)=> { 
         setDragging(false);
     }
+   
+    
+    /**
+     * 
+     * 
+     */
+    return <>
+        <ImageWrapper
+            ref={reference}
+            style={{opacity: dragging ? 0.3 : 1 }}
+            draggable 
+            onDragStart={onDragStart}
+            onDrag={onDrag}
+            onDragEnd={onDragEnd}
+        />
 
-    //
-
-    return (
-        <>
-            <ImageWrapper
-                style={{ opacity: dragging ? 0 : 1 }}
-                draggable
-                onDragStart={onDragStart}
-                onDrag={onDrag}
-                onDragEnd={onDragEnd}
-            >
-                <div className="content"></div>
-            </ImageWrapper>
-
-            <ImageWrapper
+        { dragging ? (
+            <ImageWrapper 
                 style={{
-                    position: "fixed",
-                    borderColor: "green !important",
-                    display: dragging ? "block" : "none",
-                    pointerEvents: "none",
-                    top: `${values.top}px`,
-                    left: `${values.left}px`,
-                    width: `${values.width}px`,
-                    height: `${values.height}px`,
+                    position: 'fixed',
+                    top: `${ypos}px`,
+                    left: `${xpos}px`,
+                    width: `${width}px`,
+                    height: `${height}px`,
                 }}
-            >
-                <div className="content"></div>
-            </ImageWrapper>
-        </>
-    );
-};
+            /> 
+        ) : null }
+    
+    </>
+}
+
+// const Fuckthis = () => {
+//     const [dragging, setDragging] = useState(false);
+//     const [values, setValues] = useState({});
+//     const [container, setContainer] = useState(null);
+
+//     //
+
+//     function onDragStart(ev) {
+//         setDragging(true);
+
+//         /**
+//          * create clone
+//          */
+//         const reference = ev.target.getBoundingClientRect();
+//         // setValues({
+//         //     top: reference.top + (ev.pageY - reference.top),
+//         //     left: reference.left + (ev.pageX - reference.left),
+//         //     width: reference.width,
+//         //     height: reference.height,
+//         // });
+//         setContainer(reference);
+//     }
+
+//     function onDrag(ev) {
+//         ev.preventDefault();
+
+//         console.log(
+//             `
+//             event pageX: ${ev.pageX},
+//             event pageY: ${ev.pageY},
+//            reference top: ${container.top},
+//            reference left: ${container.left},  
+//             `
+//          ) ;
+
+//         setValues({
+//             top: ev.pageY - container.top,
+//             left: ev.pageX - container.left,
+//             width: container.width,
+//             height: container.height,
+//         });
+//     }
+
+//     function onDragEnd(ev) {
+//         setDragging(false);
+//     }
+
+//     //
+
+//     return (
+//         <>
+//             <ImageWrapper
+//                 style={{ opacity: dragging ? 0.3 : 1 }}
+//                 draggable
+//                 onDragStart={onDragStart}
+//                 onDrag={onDrag}
+//                 onDragEnd={onDragEnd}
+//             >
+//                 <div className="content"></div>
+//             </ImageWrapper>
+
+//             { dragging ? <ImageWrapper
+//                 style={{
+//                     position: "fixed",
+//                     pointerEvents: "none",
+//                     top: `${values.top}px`,
+//                     left: `${values.left}px`,
+//                     bottom: 'auto',
+//                     right: 'auto',
+//                     width: `${values.width}px`,
+//                     height: `${values.height}px`,
+//                     borderRadius: '20px'
+//                 }}
+//             >
+//                 <div className="content" style={{
+//                     borderRadius: '10px'
+//                 }}></div>
+//             </ImageWrapper>: null }
+            
+//         </>
+//     );
+// };
