@@ -20,6 +20,7 @@ const UploaderWrapper = styled.div`
     border: 10px solid green;
     box-sizing: border-box;
     background: white;
+    position: relative;
 `;
 
 //
@@ -42,103 +43,83 @@ export default Uploader;
 
 const ImageWrapper = styled.div`
     width: 300px;
-    height: 200px;
-    background: gray;
-    border: 5px solid orange;
-`;
 
-const DotWrapper = styled.div`
-    border-radius: 50%;
-    width: 5px;
-    height: 5px;
-    background: red;
-    position: absolute; 
-    z-index: 10;
+    .content {
+        width: 100%;
+        height: 200px;
+        background: gray;
+        top: 0;
+        left: 0;
+        border: 5px solid orange;
+    }
 `;
 
 const Image = () => {
     const [dragging, setDragging] = useState(false);
-    const [position, setPosition] = useState({ x: 0, y: 0 });
-    const [offset, setOffset] = useState({ x: 0, y: 0 } );
-    const [dot,setDot] = useState({x: 0, y:0});
-
-    const container = useRef(null);
-
-    /**
-     *
-     */
-
-    const onDragStart = (e) => {
-        /**
-         * begin drag, 
-         */
-        
-        setDragging(true);
-        setOffset({
-            x: container.current.offsetLeft,
-            y: container.current.offsetTop
-        });
-        setPosition({
-            x: e.clientX, 
-            y: e.clientY
-        });
-
-        setDot({ x: e.clientX, y: e.clientY });
-    };
-
-    const onDrag = (e) => {
-        setPosition({
-            x: e.clientX, 
-            y: e.clientY
-        });
-        
-        setDot({ x: e.clientX, y: e.clientY });
-
-    };
-
-    const onDragEnd = (e) => {
-        setDragging(false);
-        setPosition({
-            x: e.clientX, 
-            y: e.clientY
-        });
-        setDot({ x: e.clientX, y: e.clientY });
-    };
+    const [values, setValues] = useState({});
+    const [container, setContainer] = useState(null);
 
     //
 
-    console.log( 'offset: ', offset, 'position: ', position, 'result: ', position.x - (position.x - offset.x)  );
+    function onDragStart(ev) {
+        setDragging(true);
+
+        /**
+         * create clone
+         */
+        const reference = ev.target.getBoundingClientRect();
+        setValues({
+            top: ev.pageY - reference.top,
+            left: ev.pageX - reference.left,
+            width: reference.width,
+            height: reference.height,
+        });
+        setContainer(reference);
+    }
+
+    function onDrag(ev) {
+        ev.preventDefault();
+
+        setValues({
+            top: ev.pageY - container.top,
+            left: ev.pageX - container.left,
+            width: container.width,
+            height: container.height,
+        });
+    }
+
+    function onDragEnd(ev) {
+        setDragging(false);
+    }
+
+    //
 
     return (
-        <div className="images">
-            <DotWrapper style={{ 
-                top: `${dot.y}px`, 
-                left: `${dot.x}px`, 
-                pointerEvents: 'none' 
-            }}/>
-            <ImageWrapper ref={container}
-                className={dragging ? "dragging" : ""}
+        <>
+            <ImageWrapper
+                style={{ opacity: dragging ? 0 : 1 }}
                 draggable
                 onDragStart={onDragStart}
                 onDrag={onDrag}
                 onDragEnd={onDragEnd}
-                style={{
-                    position: 'absolute',
-                    opacity: dragging ? 0 : 1, 
-                    cursor: dragging ? 'transform' : 'pointer' 
-                }}
-            ></ImageWrapper>
-            <ImageWrapper   
-                key={`clone-${position}`}
+            >
+                <div className="content"></div>
+            </ImageWrapper>
+
+            <ImageWrapper
                 style={{
                     position: "fixed",
-                    top: `${( position.y - offset.y )  +  offset.y}px`,
-                    left: `${( position.x - offset.x )  +  offset.x}px`,
-                    opacity: dragging ? 1 : 0,
+                    borderColor: "green !important",
+                    display: dragging ? "block" : "none",
                     pointerEvents: "none",
-                    border: "4px solid red",
+                    top: `${values.top}px`,
+                    left: `${values.left}px`,
+                    width: `${values.width}px`,
+                    height: `${values.height}px`,
                 }}
-            ></ImageWrapper>
-        </div>
+            >
+                <div className="content"></div>
+            </ImageWrapper>
+        </>
     );
 };

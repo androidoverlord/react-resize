@@ -3,7 +3,7 @@
  * @returns
  */
 
- export function permissions() {
+export function permissions() {
     return {
         credentials: "include",
         headers: {
@@ -138,7 +138,9 @@ export function scrollTo(to, duration) {
 }
 
 /**
- * returns the absolute position of an element regardless of position/float issues
+ * returns the absolute position
+ * of an element regardless of
+ * position/float issues
  */
 export function getPosition(el) {
     var x = 0,
@@ -148,8 +150,6 @@ export function getPosition(el) {
         x += el.offsetLeft || 0;
         y += el.offsetTop || 0;
         el = el.parentElement;
-
-        console.log( el );
     }
 
     return { x: parseInt(x, 10), y: parseInt(y, 10) };
