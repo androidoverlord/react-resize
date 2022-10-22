@@ -20,7 +20,6 @@ const UploaderWrapper = styled.div`
     border: 10px solid green;
     box-sizing: border-box;
     background: white;
-    position: relative;
 `;
 
 //
@@ -44,166 +43,82 @@ export default Uploader;
 const ImageWrapper = styled.div`
     width: 300px;
     height: 200px;
+    position: absolute;
     right: auto;
     bottom: auto;
     background: gray;
     box-sizing: border-box;
     border: 5px solid orange;
-    transition: border-radius 400ms ease; 
-    
+    transition: border-radius 400ms ease;
 `;
 
-const Image = () => { 
+const Image = () => {
     const [dragging, setDragging] = useState(false);
-    const [ xpos, setXpos] = useState(0);
-    const [ ypos, setYpos] = useState(0);
-    const [ width, setWidth] = useState(0);
-    const [ height, setHeight] = useState(0);
-    const  reference = useRef(null);
+    const [xpos, setXpos] = useState(0);
+    const [ypos, setYpos] = useState(0);
+    const [offset, setOffset] = useState({});
+    const [width, setWidth] = useState(300);
+    const [height, setHeight] = useState(150);
+    const reference = useRef(null);
 
-    //
+    const onDragStart = (event) => {
+        setOffset({ x: event.clientX, y: event.clientY });
+        setXpos(parseInt(reference.current.offsetLeft));
+        setYpos(parseInt(reference.current.offsetTop));
 
-    useEffect( () => { 
-        const init = () => { 
-            setYpos(reference.current.offsetTop);
-            setXpos(reference.current.offsetLeft);
-            setWidth(reference.current.offetWidth);
-            setHeight(reference.current.offsetHeight);
-        }
+        setDragging(true);
+    };
 
-        reference && init();
-    },[reference]);
-    
-    const onDragStart = (e) => { 
-        setDragging( true );
-    }
+    const onDrag = (event) => {
+        event.preventDefault();
 
-    const onDrag = (e) => { 
-        e.preventDefault();
+        const left = parseInt(reference.current.offsetLeft);
+        const top = parseInt(reference.current.offsetTop);
 
-        console.log( reference );
+        /**
+         *    where object is: left/top
+         *  + where the mouse is: event.client
+         *  - where the object started: offset
+         */
+        setXpos(left + event.clientX - offset.x);
+        setYpos(top + event.clientY - offset.y);
+    };
 
-        console.log(`pageX: ${e.pageX}, pageY: ${e.pageY}`);
-        console.log(`ref left: ${reference.current.offsetLeft}, ref top: ${reference.current.offsetTop} `)
-        // setYpos((currentYpos) => {
-        //     return currentYpos +
-        // });
-        // setXpos(e.pageX - reference.left);
-    }
-
-    const onDragEnd = (e)=> { 
+    const onDragEnd = (event) => {
         setDragging(false);
-    }
-   
-    
-    /**
-     * 
-     * 
-     */
-    return <>
-        <ImageWrapper
-            ref={reference}
-            style={{opacity: dragging ? 0.3 : 1 }}
-            draggable 
-            onDragStart={onDragStart}
-            onDrag={onDrag}
-            onDragEnd={onDragEnd}
-        />
 
-        { dragging ? (
-            <ImageWrapper 
+        /**
+         * translate into percentages
+         */
+
+        // reference.current.style.left = `${xpos}px`;
+        // reference.current.style.top = `${ypos}px`;
+    };
+
+    /**
+     *
+     *
+     */
+    return (
+        <>
+            <ImageWrapper
                 style={{
-                    position: 'fixed',
+                    position: "fixed",
+                    display: dragging ? "block" : "none",
                     top: `${ypos}px`,
                     left: `${xpos}px`,
                     width: `${width}px`,
                     height: `${height}px`,
                 }}
-            /> 
-        ) : null }
-    
-    </>
-}
-
-// const Fuckthis = () => {
-//     const [dragging, setDragging] = useState(false);
-//     const [values, setValues] = useState({});
-//     const [container, setContainer] = useState(null);
-
-//     //
-
-//     function onDragStart(ev) {
-//         setDragging(true);
-
-//         /**
-//          * create clone
-//          */
-//         const reference = ev.target.getBoundingClientRect();
-//         // setValues({
-//         //     top: reference.top + (ev.pageY - reference.top),
-//         //     left: reference.left + (ev.pageX - reference.left),
-//         //     width: reference.width,
-//         //     height: reference.height,
-//         // });
-//         setContainer(reference);
-//     }
-
-//     function onDrag(ev) {
-//         ev.preventDefault();
-
-//         console.log(
-//             `
-//             event pageX: ${ev.pageX},
-//             event pageY: ${ev.pageY},
-//            reference top: ${container.top},
-//            reference left: ${container.left},  
-//             `
-//          ) ;
-
-//         setValues({
-//             top: ev.pageY - container.top,
-//             left: ev.pageX - container.left,
-//             width: container.width,
-//             height: container.height,
-//         });
-//     }
-
-//     function onDragEnd(ev) {
-//         setDragging(false);
-//     }
-
-//     //
-
-//     return (
-//         <>
-//             <ImageWrapper
-//                 style={{ opacity: dragging ? 0.3 : 1 }}
-//                 draggable
-//                 onDragStart={onDragStart}
-//                 onDrag={onDrag}
-//                 onDragEnd={onDragEnd}
-//             >
-//                 <div className="content"></div>
-//             </ImageWrapper>
-
-//             { dragging ? <ImageWrapper
-//                 style={{
-//                     position: "fixed",
-//                     pointerEvents: "none",
-//                     top: `${values.top}px`,
-//                     left: `${values.left}px`,
-//                     bottom: 'auto',
-//                     right: 'auto',
-//                     width: `${values.width}px`,
-//                     height: `${values.height}px`,
-//                     borderRadius: '20px'
-//                 }}
-//             >
-//                 <div className="content" style={{
-//                     borderRadius: '10px'
-//                 }}></div>
-//             </ImageWrapper>: null }
-            
-//         </>
-//     );
-// };
+            />
+            <ImageWrapper
+                ref={reference}
+                style={{ opacity: dragging ? 0 : 1 }}
+                draggable
+                onDragStart={onDragStart}
+                onDrag={onDrag}
+                onDragEnd={onDragEnd}
+            />
+        </>
+    );
+};
