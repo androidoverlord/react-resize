@@ -40,13 +40,9 @@ export default Uploader;
  *
  */
 
-const ImageWrapper = styled.div`
+const ImageWrapper = styled.img`
     width: 300px;
-    height: 200px;
-    position: absolute;
-    right: auto;
-    bottom: auto;
-    background: gray;
+    height: auto;
     box-sizing: border-box;
     border: 5px solid orange;
     transition: border-radius 400ms ease;
@@ -54,34 +50,28 @@ const ImageWrapper = styled.div`
 
 const Image = () => {
     const [dragging, setDragging] = useState(false);
+    const [xdrag, setXdrag] = useState(0);
+    const [ydrag, setYdrag] = useState(0);
     const [xpos, setXpos] = useState(0);
     const [ypos, setYpos] = useState(0);
     const [offset, setOffset] = useState({});
-    const [width, setWidth] = useState(300);
-    const [height, setHeight] = useState(150);
     const reference = useRef(null);
 
     const onDragStart = (event) => {
         setOffset({ x: event.clientX, y: event.clientY });
-        setXpos(parseInt(reference.current.offsetLeft));
-        setYpos(parseInt(reference.current.offsetTop));
-
         setDragging(true);
     };
 
     const onDrag = (event) => {
         event.preventDefault();
 
-        const left = parseInt(reference.current.offsetLeft);
-        const top = parseInt(reference.current.offsetTop);
-
         /**
          *    where object is: left/top
          *  + where the mouse is: event.client
          *  - where the object started: offset
          */
-        setXpos(left + event.clientX - offset.x);
-        setYpos(top + event.clientY - offset.y);
+        setXpos(event.clientX - offset.x);
+        setYpos(event.clientY - offset.y);
     };
 
     const onDragEnd = (event) => {
@@ -90,9 +80,7 @@ const Image = () => {
         /**
          * translate into percentages
          */
-
-        // reference.current.style.left = `${xpos}px`;
-        // reference.current.style.top = `${ypos}px`;
+         reference.current.style.transform = `translate(${ offset.x - xpos }px,${ offset.y - ypos }px)`;
     };
 
     /**
@@ -105,19 +93,18 @@ const Image = () => {
                 style={{
                     position: "fixed",
                     display: dragging ? "block" : "none",
-                    top: `${ypos}px`,
-                    left: `${xpos}px`,
-                    width: `${width}px`,
-                    height: `${height}px`,
+                    transform: `translate(${xpos}px,${ypos}px)`,
                 }}
+                src={require(`@root/assets/images/pic.png`)}
             />
             <ImageWrapper
                 ref={reference}
-                style={{ opacity: dragging ? 0 : 1 }}
+                style={{ opacity: dragging ? 0.3 : 1 }}
                 draggable
                 onDragStart={onDragStart}
                 onDrag={onDrag}
                 onDragEnd={onDragEnd}
+                src={require(`@root/assets/images/pic.png`)}
             />
         </>
     );
