@@ -45,25 +45,77 @@ const ImageWrapper = styled.img`
     height: auto;
     box-sizing: border-box;
     border: 5px solid orange;
+    transform-origin: left top;
     transition: border-radius 400ms ease;
 `;
 
 const Image = () => {
     const [dragging, setDragging] = useState(false);
-    const [xdrag, setXdrag] = useState(0);
-    const [ydrag, setYdrag] = useState(0);
     const [xpos, setXpos] = useState(0);
     const [ypos, setYpos] = useState(0);
-    const [offset, setOffset] = useState({});
+    const [offset, setOffset] = useState({x:0,y:0});
     const reference = useRef(null);
 
+    //
+
+    // console.log( window.name );
+
+    // window.addEventListener('scroll',(event) => { 
+    //     console.log( 'scrolling: ', event );
+    // })
+
+    //
+
     const onDragStart = (event) => {
-        setOffset({ x: event.clientX, y: event.clientY });
-        setDragging(true);
+
+        /**
+         * get translate and convert 
+         * to x/y parameters
+         */
+
+        // let translate = event.target.style.transform;
+
+        // translate.replace('translate(','').replace(')','');
+        // console.log(typeof translate );
+
+        // // console.log( event.target.style );
+        // // console.log( translate );
+
+        /**
+         * get translate & if has values
+         * subtract from event.clients
+         */
+
+        console.log( event, event.target.getAttribute('style') );
+        const regExp = /\(([^)]+)\)/;
+        const matches = regExp.exec(event.target.style.transform);
+        const initial = matches ? matches[1].split(',') : [0,0];
+
+
+        setOffset({ 
+            x: event.clientX - parseInt( initial[0] ),  
+            y: event.clientY - parseInt( initial[1] )
+        });
+        setXpos( parseInt( initial[0] ) );
+        setYpos( parseInt( initial[1] ) );
+
+        setDragging(true);        
     };
 
     const onDrag = (event) => {
         event.preventDefault();
+
+        // const buffer = 5;
+        // if( offset.x <= buffer && offset.y <= buffer ){
+        //     /**
+        //      * this is a resizeable element
+        //      */
+        // }else if( offset.x <= buffer && offset.y <=  )
+        // }else{ 
+            /**
+             * this is a draggable element
+             */
+        // }
 
         /**
          *    where object is: left/top
@@ -77,11 +129,18 @@ const Image = () => {
     const onDragEnd = (event) => {
         setDragging(false);
 
+        const translate = `translate(${event.clientX - offset.x}px,${event.clientY - offset.y}px)`;
+        reference.current.style.transform = translate;
+
         /**
          * translate into percentages
          */
-         reference.current.style.transform = `translate(${ offset.x - xpos }px,${ offset.y - ypos }px)`;
+        //  reference.current.style.transform = `translate(${ offset.x - xpos }px,${ offset.y - ypos }px)`;
     };
+
+    //
+
+    console.log( 'xpos: ', xpos, ' ypos: ', ypos, ' offset: ', offset);
 
     /**
      *
@@ -93,6 +152,7 @@ const Image = () => {
                 style={{
                     position: "fixed",
                     display: dragging ? "block" : "none",
+                    borderColor: 'green',
                     transform: `translate(${xpos}px,${ypos}px)`,
                 }}
                 src={require(`@root/assets/images/pic.png`)}
