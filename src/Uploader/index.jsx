@@ -24,11 +24,13 @@ const UploaderWrapper = styled.div`
 
 //
 
-const Uploader = () => {
+const Uploader = (props) => {
     return (
         <ProfileWrapper>
             <UploaderWrapper>
-                <Image />
+                <Image update={(values) => { 
+                    console.log( values );
+                }} />
             </UploaderWrapper>
         </ProfileWrapper>
     );
@@ -39,6 +41,51 @@ export default Uploader;
 /**
  *
  */
+
+const CornerWrapper = styled.div`
+    width: 40px;
+    height: 40px;
+    background: red; 
+    // opacity :0;
+    background: red;
+    border-radius: 50%;
+    pointer-events: none;
+    position: absolute;
+    z-index: 20;
+    transition: opacity 200ms ease; 
+
+    &:nth-child(1){ 
+        top: 0;
+        left: 0;
+        right: auto;
+        bottom: auto;
+    }
+
+    &:nth-child(2){ 
+        top: 0;
+        left: auto;
+        right: 0;
+        bottom: auto;
+    }
+
+    &:nth-child(3){ 
+        top: auto;
+        left: auto;
+        right: 0;
+        bottom: 0;
+    }
+
+    &:nth-child(4){ 
+        top: auto;
+        left: 0;
+        right: auto;
+        bottom: 0;
+    }
+
+    &.active { 
+        opacity: 1;
+    }
+`;
 
 const ImageWrapper = styled.img`
     width: 300px;
@@ -56,46 +103,28 @@ const Image = () => {
     const [offset, setOffset] = useState({x:0,y:0});
     const reference = useRef(null);
 
-    //
-
-    // console.log( window.name );
-
-    // window.addEventListener('scroll',(event) => { 
-    //     console.log( 'scrolling: ', event );
-    // })
-
-    //
+    /**
+     * functions 
+     */
 
     const onDragStart = (event) => {
-
         /**
-         * get translate and convert 
-         * to x/y parameters
+         * find and initial
+         * set of position 
+         * for reference
          */
-
-        // let translate = event.target.style.transform;
-
-        // translate.replace('translate(','').replace(')','');
-        // console.log(typeof translate );
-
-        // // console.log( event.target.style );
-        // // console.log( translate );
-
-        /**
-         * get translate & if has values
-         * subtract from event.clients
-         */
-
-        console.log( event, event.target.getAttribute('style') );
-        const regExp = /\(([^)]+)\)/;
-        const matches = regExp.exec(event.target.style.transform);
-        const initial = matches ? matches[1].split(',') : [0,0];
-
+         const regExp = /\(([^)]+)\)/;
+         const matches = regExp.exec(event.target.style.transform);
+         const initial = matches ? matches[1].split(',') : [0,0];
 
         setOffset({ 
             x: event.clientX - parseInt( initial[0] ),  
             y: event.clientY - parseInt( initial[1] )
         });
+
+        /**
+         * set position
+         */
         setXpos( parseInt( initial[0] ) );
         setYpos( parseInt( initial[1] ) );
 
@@ -105,17 +134,10 @@ const Image = () => {
     const onDrag = (event) => {
         event.preventDefault();
 
-        // const buffer = 5;
-        // if( offset.x <= buffer && offset.y <= buffer ){
-        //     /**
-        //      * this is a resizeable element
-        //      */
-        // }else if( offset.x <= buffer && offset.y <=  )
-        // }else{ 
-            /**
-             * this is a draggable element
-             */
-        // }
+        /**
+         * where is drag starting at? 
+         */
+
 
         /**
          *    where object is: left/top
@@ -132,15 +154,8 @@ const Image = () => {
         const translate = `translate(${event.clientX - offset.x}px,${event.clientY - offset.y}px)`;
         reference.current.style.transform = translate;
 
-        /**
-         * translate into percentages
-         */
-        //  reference.current.style.transform = `translate(${ offset.x - xpos }px,${ offset.y - ypos }px)`;
+        props.update();
     };
-
-    //
-
-    console.log( 'xpos: ', xpos, ' ypos: ', ypos, ' offset: ', offset);
 
     /**
      *
@@ -148,6 +163,9 @@ const Image = () => {
      */
     return (
         <>
+            { Array.from({length: 4},() => { 
+                return <CornerWrapper/>
+            })}
             <ImageWrapper
                 style={{
                     position: "fixed",
