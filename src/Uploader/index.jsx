@@ -42,65 +42,75 @@ export default Uploader;
  *
  */
 
+const diff = 20;
 const CornerWrapper = styled.div`
-    width: 40px;
-    height: 40px;
-    background: red; 
-    // opacity :0;
-    background: red;
-    border-radius: 50%;
-    pointer-events: none;
+    width: 20px;
+    height: 20px;
+    border: red; 
+    opacity :0.3;
+    background: rgba(255,255,255,0.2);
+    border: 2px solid red;
     position: absolute;
+    border-radius: 50%;
     z-index: 20;
     transition: opacity 200ms ease; 
 
     &:nth-child(1){ 
-        top: 0;
-        left: 0;
+        top: -${diff/2}px;
+        left: -${diff/2}px;
         right: auto;
         bottom: auto;
     }
 
     &:nth-child(2){ 
-        top: 0;
+        top: -${diff/2}px;
         left: auto;
-        right: 0;
+        right: -${diff/2}px;
         bottom: auto;
     }
 
     &:nth-child(3){ 
         top: auto;
         left: auto;
-        right: 0;
-        bottom: 0;
+        right: -${diff/2}px;
+        bottom: -${diff/2}px;
     }
 
     &:nth-child(4){ 
         top: auto;
-        left: 0;
+        left: -${diff/2}px;
         right: auto;
-        bottom: 0;
+        bottom: -${diff/2}px;
     }
 
+    &:hover,
     &.active { 
         opacity: 1;
     }
 `;
 
-const ImageWrapper = styled.img`
+const ImageWrapper = styled.div`
+    position: relative;
+    z-index: 1;
     width: 300px;
     height: auto;
     box-sizing: border-box;
-    border: 5px solid orange;
     transform-origin: left top;
     transition: border-radius 400ms ease;
+
+    img { 
+        width: 100%;
+        height: auto;
+    }
 `;
 
 const Image = () => {
     const [dragging, setDragging] = useState(false);
     const [xpos, setXpos] = useState(0);
     const [ypos, setYpos] = useState(0);
-    const [offset, setOffset] = useState({x:0,y:0});
+    const [width,setWidth] = useState(200);
+    const [ origin, setOrigin ] = useState('top left');
+    const [offset, setOffset] = useState({x:0,y:0,w:0});
     const reference = useRef(null);
 
     /**
@@ -114,12 +124,13 @@ const Image = () => {
          * for reference
          */
          const regExp = /\(([^)]+)\)/;
-         const matches = regExp.exec(event.target.style.transform);
+         const matches = regExp.exec( reference.current.style.transform );
          const initial = matches ? matches[1].split(',') : [0,0];
 
         setOffset({ 
-            x: event.clientX - parseInt( initial[0] ),  
-            y: event.clientY - parseInt( initial[1] )
+            x: event.clientX - parseInt( initial[0] ),
+            y: event.clientY - parseInt( initial[1] ),
+            w: parseInt( reference.current.offsetWidth )
         });
 
         /**
@@ -128,34 +139,74 @@ const Image = () => {
         setXpos( parseInt( initial[0] ) );
         setYpos( parseInt( initial[1] ) );
 
+        if( event.target.classList.contains('corner') ){ 
+            const dirs = ['top left','top right','bottom right','bottom left'];
+            setOrigin( dirs[parseInt( event.target.dataset.position )] );
+        }
+
+        /**
+         * resizing
+         */
+        
         setDragging(true);        
     };
 
     const onDrag = (event) => {
         event.preventDefault();
+        
+        if( event.target.classList.contains('corner') ){ 
+            /**
+             * this is a resizing
+             * event for width
+             */
+            const difference = event.clientX - offset.x;
+            setWidth( parseInt( offset.w ) + difference);
+        }else{ 
+            /**
+             * this is a dragging
+             * event for xpos, ypos
+             */
+            const relativeX = event.clientX - offset.x;
+            const relativeY = event.clientY - offset.y;
 
-        /**
-         * where is drag starting at? 
-         */
+            setXpos(relativeX);
+            setYpos(relativeY);
+        }
 
-
-        /**
-         *    where object is: left/top
-         *  + where the mouse is: event.client
-         *  - where the object started: offset
-         */
-        setXpos(event.clientX - offset.x);
-        setYpos(event.clientY - offset.y);
+        console.log('dragging firing');
     };
 
     const onDragEnd = (event) => {
         setDragging(false);
 
-        const translate = `translate(${event.clientX - offset.x}px,${event.clientY - offset.y}px)`;
-        reference.current.style.transform = translate;
-
-        props.update();
+        if( !event.target.classList.contains('corner') ){ 
+            /**
+             * this is a dragging
+             * event for xpos, ypos
+             */
+             const translate = `translate(${event.clientX - offset.x}px,${event.clientY - offset.y}px)`;
+             reference.current.style.transform = translate;
+        }
+        // props.update();
     };
+
+    /**
+     * resizing
+     */
+
+     
+
+    const onResizeStart = (event) => { 
+        event.stopPropagation();
+
+       setWidth(300);
+        console.log( 'resize start' );
+    }
+    
+    const onResize = (event,index) => { 
+        event.preventDefault();
+        console.log(event,index);
+    }
 
     /**
      *
@@ -163,27 +214,37 @@ const Image = () => {
      */
     return (
         <>
-            { Array.from({length: 4},() => { 
-                return <CornerWrapper/>
-            })}
+            
             <ImageWrapper
                 style={{
                     position: "fixed",
                     display: dragging ? "block" : "none",
                     borderColor: 'green',
                     transform: `translate(${xpos}px,${ypos}px)`,
-                }}
-                src={require(`@root/assets/images/pic.png`)}
-            />
+                    transformOrigin: origin,
+                    width: `${width}px`
+                }}>
+                    
+                    <img src={require(`@root/assets/images/pic.png`)}/>
+                </ImageWrapper>
+                
             <ImageWrapper
                 ref={reference}
-                style={{ opacity: dragging ? 0.3 : 1 }}
+                style={{ 
+                    opacity: dragging ? 0.3 : 1,
+                    width: `${width}px`,
+                    transformOrigin: origin,
+                }}
                 draggable
                 onDragStart={onDragStart}
                 onDrag={onDrag}
-                onDragEnd={onDragEnd}
-                src={require(`@root/assets/images/pic.png`)}
-            />
+                onDragEnd={onDragEnd}>
+                    { Array.from({length: 4},(object,index) => { 
+                        return <CornerWrapper draggable className={`corner`} data-position={index} key={`corner-item-${index}`}/>
+                    })}
+                    <img  src={require(`@root/assets/images/pic.png`)}/>
+            </ImageWrapper>
+               
         </>
     );
 };
