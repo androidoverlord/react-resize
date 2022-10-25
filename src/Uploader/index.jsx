@@ -166,14 +166,14 @@ const Image = () => {
 
             switch (position) {
                 case 0:
-                // top left
-                // setWidth(scale);
-                // setXpos(relativeX * scale);
-                // setYpos(relativeY * scale);
-                // break;
+                    // top left
+                    // setWidth(scale);
+                    // setXpos(relativeX * scale);
+                    // setYpos(relativeY * scale);
+                    break;
                 case 1:
-                    setWidth(scale);
-                    setYpos(scale - offset.y);
+                    // setWidth(scale);
+                    // setYpos(scale - offset.y);
                     break;
                 case 2:
                     setWidth(scale);
