@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import styled from "styled-components";
 
 //
@@ -109,8 +109,7 @@ const Image = () => {
     const [xpos, setXpos] = useState(0);
     const [ypos, setYpos] = useState(0);
     const [width,setWidth] = useState(200);
-    const [ origin, setOrigin ] = useState('top left');
-    const [offset, setOffset] = useState({x:0,y:0,w:0});
+    const [offset, setOffset] = useState({ x:0, y:0, w:0 });
     const reference = useRef(null);
 
     /**
@@ -139,11 +138,6 @@ const Image = () => {
         setXpos( parseInt( initial[0] ) );
         setYpos( parseInt( initial[1] ) );
 
-        if( event.target.classList.contains('corner') ){ 
-            const dirs = ['top left','top right','bottom right','bottom left'];
-            setOrigin( dirs[parseInt( event.target.dataset.position )] );
-        }
-
         /**
          * resizing
          */
@@ -153,21 +147,41 @@ const Image = () => {
 
     const onDrag = (event) => {
         event.preventDefault();
+
+        const relativeX = event.clientX - offset.x;
+        const relativeY = event.clientY - offset.y;
         
         if( event.target.classList.contains('corner') ){ 
             /**
              * this is a resizing
              * event for width
              */
-            const difference = event.clientX - offset.x;
-            setWidth( parseInt( offset.w ) + difference);
+            const scale = parseInt( offset.w ) + relativeX;
+
+            switch( parseInt( event.target.dataset.position ) ){ 
+                case 0:
+                    // top left
+                    setWidth( scale );
+                    setXpos( relativeX * scale );
+                    setYpos( relativeY * scale );
+                    break;
+                case 1:
+                    setWidth( scale );
+                    break;
+                case 2: 
+                    setWidth( scale );
+                    break;
+                case 3:
+                    break;
+                default:
+                    break;
+            }
+            
         }else{ 
             /**
              * this is a dragging
              * event for xpos, ypos
              */
-            const relativeX = event.clientX - offset.x;
-            const relativeY = event.clientY - offset.y;
 
             setXpos(relativeX);
             setYpos(relativeY);
@@ -191,24 +205,6 @@ const Image = () => {
     };
 
     /**
-     * resizing
-     */
-
-     
-
-    const onResizeStart = (event) => { 
-        event.stopPropagation();
-
-       setWidth(300);
-        console.log( 'resize start' );
-    }
-    
-    const onResize = (event,index) => { 
-        event.preventDefault();
-        console.log(event,index);
-    }
-
-    /**
      *
      *
      */
@@ -221,7 +217,6 @@ const Image = () => {
                     display: dragging ? "block" : "none",
                     borderColor: 'green',
                     transform: `translate(${xpos}px,${ypos}px)`,
-                    transformOrigin: origin,
                     width: `${width}px`
                 }}>
                     
@@ -233,7 +228,6 @@ const Image = () => {
                 style={{ 
                     opacity: dragging ? 0.3 : 1,
                     width: `${width}px`,
-                    transformOrigin: origin,
                 }}
                 draggable
                 onDragStart={onDragStart}
