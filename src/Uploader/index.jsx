@@ -29,6 +29,7 @@ const Uploader = (props) => {
         <ProfileWrapper>
             <UploaderWrapper>
                 <Image
+                    originalW={200}
                     update={(values) => {
                         console.log(values);
                     }}
@@ -106,12 +107,14 @@ const ImageWrapper = styled.div`
     }
 `;
 
-const Image = () => {
+const Image = ({ originalW }) => {
     const [dragging, setDragging] = useState(false);
+    const [resizing, setResizing] = useState(false);
+    const [position, setPosition] = useState(0);
     const [xpos, setXpos] = useState(0);
     const [ypos, setYpos] = useState(0);
-    const [width, setWidth] = useState(200);
-    const [offset, setOffset] = useState({ x: 0, y: 0, w: 0 });
+    const [width, setWidth] = useState(originalW);
+    const [offset, setOffset] = useState({ x: 0, y: 0 });
     const reference = useRef(null);
 
     /**
@@ -120,6 +123,8 @@ const Image = () => {
 
     const onDragStart = (event) => {
         event.stopPropagation();
+
+        // console.log(event.target);
 
         /**
          * find and initial
@@ -130,60 +135,56 @@ const Image = () => {
         const matches = regExp.exec(reference.current.style.transform);
         const initial = matches ? matches[1].split(",") : [0, 0];
 
-        // console.log("started: ", reference.current.offsetWidth);
-
         setOffset({
             x: event.clientX - parseInt(initial[0]),
             y: event.clientY - parseInt(initial[1]),
-            w: parseInt(event.target.width),
+            w: parseInt(width),
         });
-
-        console.log(event.target);
 
         /**
          * set position
          */
         setXpos(parseInt(initial[0]));
         setYpos(parseInt(initial[1]));
-        setWidth(parseInt(event.target.width));
 
         /**
          * resizing
          */
 
+        if (event.target.classList.contains("corner")) {
+            const position = parseInt(event.target.dataset.position);
+            setResizing(true);
+            setPosition(position);
+        }
         setDragging(true);
     };
 
     const onDrag = (event) => {
         event.preventDefault();
-        event.stopPropagation();
 
         const relativeX = event.clientX - offset.x;
         const relativeY = event.clientY - offset.y;
 
-        console.log("dragging: ", event.clientX, offset);
-
-        if (event.target.classList.contains("corner")) {
+        if (resizing) {
             /**
              * this is a resizing
              * event for width
              */
-            const scale = parseInt(offset.w) + relativeX - xpos;
-            const position = parseInt(event.target.dataset.position);
+            const scale = offset.w + relativeX - xpos;
+
+            console.log("here", offset.w + relativeX - xpos);
 
             switch (position) {
                 case 0:
-                    // top left
-                    // setWidth(scale);
-                    // setXpos(relativeX * scale);
-                    // setYpos(relativeY * scale);
+                    // console.log(scale);
+                    setWidth(offset.w - relativeX - xpos);
+                    setXpos(offset.x + (offset.x + event.clientX));
+                    setYpos(offset.y + (offset.y + event.clientY));
                     break;
                 case 1:
-                    // setWidth(scale);
-                    // setYpos(scale - offset.y);
                     break;
                 case 2:
-                    setWidth(scale);
+                    setWidth(offset.w + relativeX - xpos);
                     break;
                 case 3:
                     break;
@@ -203,7 +204,11 @@ const Image = () => {
     const onDragEnd = (event) => {
         event.preventDefault();
 
-        if (!event.target.classList.contains("corner")) {
+        if (resizing) {
+            /**
+             * this is resizing
+             */
+        } else {
             /**
              * this is a dragging
              * event for xpos, ypos
@@ -215,6 +220,7 @@ const Image = () => {
         }
 
         setDragging(false);
+        setResizing(false);
 
         // props.update();
     };
@@ -260,8 +266,6 @@ const Image = () => {
                 }}
                 draggable
                 onDragStart={onDragStart}
-                // onDrag={onDrag}
-                // onDragEnd={onDragEnd}
             >
                 {Array.from({ length: 4 }, (object, index) => {
                     return (
