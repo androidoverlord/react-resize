@@ -119,6 +119,7 @@ const Image = () => {
      */
 
     const onDragStart = (event) => {
+        // event.preventDefault();
         /**
          * find and initial
          * set of position
@@ -128,11 +129,11 @@ const Image = () => {
         const matches = regExp.exec(reference.current.style.transform);
         const initial = matches ? matches[1].split(",") : [0, 0];
 
-        console.log("started: ", reference.current.offsetWidth);
+        // console.log("started: ", reference.current.offsetWidth);
 
         setOffset({
-            x: event.clientX - parseInt(initial[0]),
-            y: event.clientY - parseInt(initial[1]),
+            x: event.clientX - parseInt(initial[0] ),
+            y: event.clientY - parseInt(initial[1] ),
             w: parseInt(reference.current.offsetWidth),
         });
 
@@ -152,9 +153,12 @@ const Image = () => {
 
     const onDrag = (event) => {
         event.preventDefault();
+        event.stopPropagation();
 
         const relativeX = event.clientX - offset.x;
         const relativeY = event.clientY - offset.y;
+
+        console.log( 'dragging: ', event)
 
         if (event.target.classList.contains("corner")) {
             /**
@@ -188,15 +192,13 @@ const Image = () => {
              * this is a dragging
              * event for xpos, ypos
              */
-
             setXpos(relativeX);
             setYpos(relativeY);
         }
-
-        console.log("dragging firing");
     };
 
     const onDragEnd = (event) => {
+        event.preventDefault();
         setDragging(false);
 
         if (!event.target.classList.contains("corner")) {
