@@ -119,8 +119,7 @@ const Image = () => {
      */
 
     const onDragStart = (event) => {
-        event.stopPropagation();
-
+        // event.preventDefault();
         /**
          * find and initial
          * set of position
@@ -135,17 +134,15 @@ const Image = () => {
         setOffset({
             x: event.clientX - parseInt(initial[0]),
             y: event.clientY - parseInt(initial[1]),
-            w: parseInt(event.target.width),
+            w: parseInt(reference.current.offsetWidth),
         });
-
-        console.log(event.target);
 
         /**
          * set position
          */
         setXpos(parseInt(initial[0]));
         setYpos(parseInt(initial[1]));
-        setWidth(parseInt(event.target.width));
+        setWidth(parseInt(reference.current.offsetWidth));
 
         /**
          * resizing
@@ -161,7 +158,7 @@ const Image = () => {
         const relativeX = event.clientX - offset.x;
         const relativeY = event.clientY - offset.y;
 
-        console.log("dragging: ", event.clientX, offset);
+        console.log("dragging: ", event.clientX);
 
         if (event.target.classList.contains("corner")) {
             /**
@@ -202,6 +199,7 @@ const Image = () => {
 
     const onDragEnd = (event) => {
         event.preventDefault();
+        setDragging(false);
 
         if (!event.target.classList.contains("corner")) {
             /**
@@ -213,9 +211,6 @@ const Image = () => {
             }px)`;
             reference.current.style.transform = translate;
         }
-
-        setDragging(false);
-
         // props.update();
     };
 
@@ -224,19 +219,7 @@ const Image = () => {
      *
      */
     return (
-        <div
-            className="container"
-            style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                border: `2px solid red`,
-            }}
-            onDragOver={onDrag}
-            onDrop={onDragEnd}
-        >
+        <>
             <ImageWrapper
                 style={{
                     position: "fixed",
@@ -246,10 +229,7 @@ const Image = () => {
                     width: `${width}px`,
                 }}
             >
-                <img
-                    style={{ pointerEvents: "none" }}
-                    src={require(`@root/assets/images/pic.png`)}
-                />
+                <img src={require(`@root/assets/images/pic.png`)} />
             </ImageWrapper>
 
             <ImageWrapper
@@ -260,8 +240,8 @@ const Image = () => {
                 }}
                 draggable
                 onDragStart={onDragStart}
-                // onDrag={onDrag}
-                // onDragEnd={onDragEnd}
+                onDrag={onDrag}
+                onDragEnd={onDragEnd}
             >
                 {Array.from({ length: 4 }, (object, index) => {
                     return (
@@ -278,11 +258,10 @@ const Image = () => {
                         opacity: dragging ? 0 : 1,
                         position: "relative",
                         zIndex: -100,
-                        pointerEvents: "none",
                     }}
                     src={require(`@root/assets/images/pic.png`)}
                 />
             </ImageWrapper>
-        </div>
+        </>
     );
 };
