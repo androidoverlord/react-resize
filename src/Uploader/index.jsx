@@ -114,7 +114,7 @@ const Image = ({ originalW }) => {
     const [xpos, setXpos] = useState(0);
     const [ypos, setYpos] = useState(0);
     const [width, setWidth] = useState(parseInt(originalW));
-    const [offset, setOffset] = useState({ x: 0, y: 0 });
+    const [offset, setOffset] = useState({ x: 0, y: 0, w: parseInt( originalW) });
     const reference = useRef(null);
 
     /**
@@ -135,17 +135,13 @@ const Image = ({ originalW }) => {
         const matches = regExp.exec(reference.current.style.transform);
         const initial = matches ? matches[1].split(",") : [0, 0];
 
-        setOffset({
-            x: event.clientX - parseInt(initial[0]),
-            y: event.clientY - parseInt(initial[1]),
-            w: parseInt(width),
-        });
+        console.log( xpos, ypos, width, initial );
 
-        /**
-         * set position
-         */
-        setXpos(parseInt(initial[0]));
-        setYpos(parseInt(initial[1]));
+        setOffset({
+            x: event.clientX - parseInt( initial[0] ),
+            y: event.clientY - parseInt( initial[1] ),
+            w: width,
+        });
 
         /**
          * resizing
@@ -156,14 +152,15 @@ const Image = ({ originalW }) => {
             setResizing(true);
             setPosition(position);
         }
-        setDragging(true);
+        setDragging(true);        
     };
 
     const onDrag = (event) => {
         event.preventDefault();
 
-        const relativeX = event.clientX - offset.x;
-        const relativeY = event.clientY - offset.y;
+        /**
+         * 
+         */
 
         if (resizing) {
             /**
@@ -173,22 +170,29 @@ const Image = ({ originalW }) => {
 
             switch (position) {
                 case 0:
-                    setWidth(offset.w - relativeX);
+                    const newX = offset.w - (event.clientX - offset.x);
+                    setWidth( newX );
+                    setXpos( event.clientX );
+                    setYpos( event.clientY );
 
-                    // console.log(  typeof event.clientX);
-                    // setXpos(offset.x + (offset.w - (offset.w - relativeX)) );
-                    // setYpos(offset.y + (offset.y + event.clientY));
-                    // console.log(offset.w - relativeX + xpos);
-                    // console.log(offset.x + (offset.w - (offset.w - relativeX)) );
+                    // setXpos(event.clientX  - offset.x);
+                    // setYpos(event.clientX);
+                    // setWidth(offset.w - (clientX - offset.x));
 
-                    console.log( offset.w - relativeX );
+                    // // console.log(  typeof event.clientX);
+                    // // setXpos(offset.x + (offset.w - (offset.w - relativeX)) );
+                    // // setYpos(offset.y + (offset.y + event.clientY));
+                    // // console.log(offset.w - relativeX + xpos);
+                    // // console.log(offset.x + (offset.w - (offset.w - relativeX)) );
+
+                    // console.log( offset.w - relativeX  );
 
 
                     break;
                 case 1:
                     break;
                 case 2:
-                    setWidth(offset.w + relativeX - offset.x);
+                    setWidth(Math.abs( offset.w + ((event.clientX - offset.x) - xpos)));
                     break;
                 case 3:
                     break;
@@ -200,9 +204,9 @@ const Image = ({ originalW }) => {
              * this is a dragging
              * event for xpos, ypos
              */
-            console.log( 'not resizing' );
-            setXpos(relativeX);
-            setYpos(relativeY);
+            console.log( 'drag position working correctly',  );
+            setXpos(event.clientX - offset.x);
+            setYpos(event.clientY - offset.y);
         }
     };
 
@@ -254,6 +258,7 @@ const Image = ({ originalW }) => {
                     display: dragging ? "block" : "none",
                     borderColor: "green",
                     transform: `translate(${xpos}px,${ypos}px)`,
+                    transformOrigin: `bottom right`,
                     width: `${width}px`,
                 }}
             >
