@@ -113,7 +113,7 @@ const Image = ({ originalW }) => {
     const [position, setPosition] = useState(0);
     const [xpos, setXpos] = useState(0);
     const [ypos, setYpos] = useState(0);
-    const [width, setWidth] = useState(originalW);
+    const [width, setWidth] = useState(parseInt(originalW));
     const [offset, setOffset] = useState({ x: 0, y: 0 });
     const reference = useRef(null);
 
@@ -170,21 +170,25 @@ const Image = ({ originalW }) => {
              * this is a resizing
              * event for width
              */
-            const scale = offset.w + relativeX - xpos;
-
-            console.log("here", offset.w + relativeX - xpos);
 
             switch (position) {
                 case 0:
-                    // console.log(scale);
-                    setWidth(offset.w - relativeX - xpos);
-                    setXpos(offset.x + (offset.x + event.clientX));
-                    setYpos(offset.y + (offset.y + event.clientY));
+                    setWidth(offset.w - relativeX);
+
+                    // console.log(  typeof event.clientX);
+                    // setXpos(offset.x + (offset.w - (offset.w - relativeX)) );
+                    // setYpos(offset.y + (offset.y + event.clientY));
+                    // console.log(offset.w - relativeX + xpos);
+                    // console.log(offset.x + (offset.w - (offset.w - relativeX)) );
+
+                    console.log( offset.w - relativeX );
+
+
                     break;
                 case 1:
                     break;
                 case 2:
-                    setWidth(offset.w + relativeX - xpos);
+                    setWidth(offset.w + relativeX - offset.x);
                     break;
                 case 3:
                     break;
@@ -196,6 +200,7 @@ const Image = ({ originalW }) => {
              * this is a dragging
              * event for xpos, ypos
              */
+            console.log( 'not resizing' );
             setXpos(relativeX);
             setYpos(relativeY);
         }
