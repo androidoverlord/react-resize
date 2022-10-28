@@ -267,6 +267,8 @@ const Image = ({ originalX, originalY, originalW, originalH }) => {
                 bottom: 0,
                 border: `2px solid red`,
             }}
+            onTouchMove={onDrag}
+            onTouchEnd={onDragEnd}
             onDragOver={onDrag}
             onDrop={onDragEnd}
         >
@@ -296,6 +298,7 @@ const Image = ({ originalX, originalY, originalW, originalH }) => {
                     height: `${height}px`,
                 }}
                 draggable
+                onTouchStart={onDragStart}
                 onDragStart={onDragStart}
             >
                 {Array.from({ length: 4 }, (object, index) => {
