@@ -31,6 +31,7 @@ const Uploader = (props) => {
             <UploaderWrapper>
                 <Image
                     originalW={250}
+                    originalH={187.5}
                     originalX={265}
                     originalY={110}
                     update={(values) => {
@@ -110,17 +111,20 @@ const ImageWrapper = styled.div`
     }
 `;
 
-const Image = ({ originalX, originalY, originalW }) => {
+const Image = ({ originalX, originalY, originalW, originalH }) => {
+    const [ initial,setInitial] = useState([0,0]);
     const [dragging, setDragging] = useState(false);
     const [resizing, setResizing] = useState(false);
     const [position, setPosition] = useState(0);
     const [xpos, setXpos] = useState(parseInt(originalX));
     const [ypos, setYpos] = useState(parseInt(originalY));
     const [width, setWidth] = useState(parseInt(originalW));
+    const [height, setHeight] = useState(parseInt(originalH));
     const [offset, setOffset] = useState({
         x: 0,
         y: 0,
         w: parseInt(originalW),
+        h: parseInt(originalH),
     });
     const reference = useRef(null);
 
@@ -140,14 +144,13 @@ const Image = ({ originalX, originalY, originalW }) => {
          */
         const regExp = /\(([^)]+)\)/;
         const matches = regExp.exec(reference.current.style.transform);
-        const initial = matches ? matches[1].split(",") : [0, 0];
-
-        console.log(xpos, ypos, width, initial);
+        setInitial( matches ? matches[1].split(",") : [0, 0] );
 
         setOffset({
             x: event.clientX - xpos,
             y: event.clientY - ypos,
             w: width,
+            h: height
         });
 
         /**
@@ -176,30 +179,45 @@ const Image = ({ originalX, originalY, originalW }) => {
              * event for width
              */
 
+            let  newWidth;
+            let  newHeight; 
+            const ratio = Math.sqrt( (originalW / originalH ) * (originalW * originalH) );
+
             switch (position) {
                 case 0:
-                    setWidth(Math.abs(offset.w - (event.clientX - offset.x)));
-                    setXpos(event.clientX - offset.x);
-
-                    // setXpos(event.clientX  - offset.x);
-                    // setYpos(event.clientX);
-                    // setWidth(offset.w - (clientX - offset.x));
-
-                    // // console.log(  typeof event.clientX);
-                    // // setXpos(offset.x + (offset.w - (offset.w - relativeX)) );
-                    // // setYpos(offset.y + (offset.y + event.clientY));
-                    // // console.log(offset.w - relativeX + xpos);
-                    // // console.log(offset.x + (offset.w - (offset.w - relativeX)) );
-
-                    // console.log( offset.w - relativeX  );
+                    newWidth = offset.w - ((event.clientX - offset.x) - parseInt( initial[0]));
+                    newHeight = originalH * (newWidth / ratio) ;
+                  
+                    setWidth(newWidth);
+                    setHeight(newHeight);
+                    setXpos( parseInt( initial[0]) +  ( offset.w - newWidth));
+                    setYpos( parseInt( initial[1]) + ( offset.h - newHeight));
 
                     break;
                 case 1:
+                    newWidth = offset.w + ((event.clientX - offset.x) - parseInt( initial[0]));
+                    newHeight = originalH * (newWidth / ratio) ;
+                  
+                    setWidth(newWidth);
+                    setHeight(newHeight);
+                    setYpos( parseInt( initial[1]) + ( offset.h - newHeight));
+
                     break;
                 case 2:
-                    setWidth(offset.w + (event.clientX - offset.x));
+                    newWidth = offset.w + ((event.clientX - offset.x) - parseInt( initial[0]));
+                    newHeight = originalH * (newWidth / ratio) ;
+
+                    setWidth(newWidth);
+                    setHeight(newHeight);
+                    
                     break;
                 case 3:
+                    newWidth = offset.w - ((event.clientX - offset.x) - parseInt( initial[0]));
+                    newHeight = originalH * (newWidth / ratio) ;
+                  
+                    setWidth(newWidth);
+                    setHeight(newHeight);
+                    setXpos( parseInt( initial[0]) +  ( offset.w - newWidth));
                     break;
                 default:
                     break;
@@ -264,6 +282,7 @@ const Image = ({ originalX, originalY, originalW }) => {
                         transform: `translate(${xpos}px,${ypos}px)`,
                         transformOrigin: `bottom right`,
                         width: `${width}px`,
+                        height: `${height}px`,
                     }}
                 >
                     <img
@@ -279,6 +298,8 @@ const Image = ({ originalX, originalY, originalW }) => {
                     transform: `translate(${xpos}px,${ypos}px)`,
                     opacity: dragging ? 0 : 1,
                     width: `${width}px`,
+                    height: `${height}px`,
+
                 }}
                 draggable
                 onDragStart={onDragStart}
