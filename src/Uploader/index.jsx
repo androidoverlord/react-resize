@@ -1,9 +1,10 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef } from "react";
 import styled from "styled-components";
 
 //
 
 const ProfileWrapper = styled.div`
+    position: relative;
     width: 700px;
     height: 400px;
     background: blue;
@@ -29,7 +30,9 @@ const Uploader = (props) => {
         <ProfileWrapper>
             <UploaderWrapper>
                 <Image
-                    originalW={200}
+                    originalW={250}
+                    originalX={265}
+                    originalY={110}
                     update={(values) => {
                         console.log(values);
                     }}
@@ -107,14 +110,18 @@ const ImageWrapper = styled.div`
     }
 `;
 
-const Image = ({ originalW }) => {
+const Image = ({ originalX, originalY, originalW }) => {
     const [dragging, setDragging] = useState(false);
     const [resizing, setResizing] = useState(false);
     const [position, setPosition] = useState(0);
-    const [xpos, setXpos] = useState(0);
-    const [ypos, setYpos] = useState(0);
+    const [xpos, setXpos] = useState(parseInt(originalX));
+    const [ypos, setYpos] = useState(parseInt(originalY));
     const [width, setWidth] = useState(parseInt(originalW));
-    const [offset, setOffset] = useState({ x: 0, y: 0, w: parseInt( originalW) });
+    const [offset, setOffset] = useState({
+        x: 0,
+        y: 0,
+        w: parseInt(originalW),
+    });
     const reference = useRef(null);
 
     /**
@@ -135,11 +142,11 @@ const Image = ({ originalW }) => {
         const matches = regExp.exec(reference.current.style.transform);
         const initial = matches ? matches[1].split(",") : [0, 0];
 
-        console.log( xpos, ypos, width, initial );
+        console.log(xpos, ypos, width, initial);
 
         setOffset({
-            x: event.clientX - parseInt( initial[0] ),
-            y: event.clientY - parseInt( initial[1] ),
+            x: event.clientX - xpos,
+            y: event.clientY - ypos,
             w: width,
         });
 
@@ -152,14 +159,15 @@ const Image = ({ originalW }) => {
             setResizing(true);
             setPosition(position);
         }
-        setDragging(true);        
+
+        setDragging(true);
     };
 
     const onDrag = (event) => {
         event.preventDefault();
 
         /**
-         * 
+         *
          */
 
         if (resizing) {
@@ -170,10 +178,8 @@ const Image = ({ originalW }) => {
 
             switch (position) {
                 case 0:
-                    const newX = offset.w - (event.clientX - offset.x);
-                    setWidth( newX );
-                    setXpos( event.clientX );
-                    setYpos( event.clientY );
+                    setWidth(Math.abs(offset.w - (event.clientX - offset.x)));
+                    setXpos(event.clientX - offset.x);
 
                     // setXpos(event.clientX  - offset.x);
                     // setYpos(event.clientX);
@@ -187,12 +193,11 @@ const Image = ({ originalW }) => {
 
                     // console.log( offset.w - relativeX  );
 
-
                     break;
                 case 1:
                     break;
                 case 2:
-                    setWidth(Math.abs( offset.w + ((event.clientX - offset.x) - xpos)));
+                    setWidth(offset.w + (event.clientX - offset.x));
                     break;
                 case 3:
                     break;
@@ -204,7 +209,7 @@ const Image = ({ originalW }) => {
              * this is a dragging
              * event for xpos, ypos
              */
-            console.log( 'drag position working correctly',  );
+            console.log("drag position working correctly");
             setXpos(event.clientX - offset.x);
             setYpos(event.clientY - offset.y);
         }
@@ -222,10 +227,10 @@ const Image = ({ originalW }) => {
              * this is a dragging
              * event for xpos, ypos
              */
-            const translate = `translate(${event.clientX - offset.x}px,${
-                event.clientY - offset.y
-            }px)`;
-            reference.current.style.transform = translate;
+            // const translate = `translate(${event.clientX - offset.x}px,${
+            //     event.clientY - offset.y
+            // }px)`;
+            // reference.current.style.transform = translate;
         }
 
         setDragging(false);
@@ -252,25 +257,26 @@ const Image = ({ originalW }) => {
             onDragOver={onDrag}
             onDrop={onDragEnd}
         >
-            <ImageWrapper
-                style={{
-                    position: "fixed",
-                    display: dragging ? "block" : "none",
-                    borderColor: "green",
-                    transform: `translate(${xpos}px,${ypos}px)`,
-                    transformOrigin: `bottom right`,
-                    width: `${width}px`,
-                }}
-            >
-                <img
-                    style={{ pointerEvents: "none" }}
-                    src={require(`@root/assets/images/pic.png`)}
-                />
-            </ImageWrapper>
+            {dragging && (
+                <ImageWrapper
+                    style={{
+                        position: "fixed",
+                        transform: `translate(${xpos}px,${ypos}px)`,
+                        transformOrigin: `bottom right`,
+                        width: `${width}px`,
+                    }}
+                >
+                    <img
+                        style={{ pointerEvents: "none" }}
+                        src={require(`@root/assets/images/pic.png`)}
+                    />
+                </ImageWrapper>
+            )}
 
             <ImageWrapper
                 ref={reference}
                 style={{
+                    transform: `translate(${xpos}px,${ypos}px)`,
                     opacity: dragging ? 0 : 1,
                     width: `${width}px`,
                 }}
